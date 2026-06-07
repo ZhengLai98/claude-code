@@ -75,16 +75,16 @@ jobs:
           cp -r scripts "release/$PKG_NAME/scripts"
 
           # Create entry wrapper — auto-detect bun vs node
-          cat > "release/$PKG_NAME/ccb" << 'WRAPPER'
-#!/usr/bin/env bash
-set -e
-DIR="$(cd "$(dirname "$0")" && pwd)"
-if command -v bun &>/dev/null; then
-  exec bun "$DIR/dist/cli.js" "$@"
-else
-  exec node "$DIR/dist/cli-node.js" "$@"
-fi
-WRAPPER
+          {
+            echo '#!/usr/bin/env bash'
+            echo 'set -e'
+            echo 'DIR="$(cd "$(dirname "$0")" && pwd)"'
+            echo 'if command -v bun &>/dev/null; then'
+            echo '  exec bun "$DIR/dist/cli.js" "$@"'
+            echo 'else'
+            echo '  exec node "$DIR/dist/cli-node.js" "$@"'
+            echo 'fi'
+          } > "release/$PKG_NAME/ccb"
           chmod +x "release/$PKG_NAME/ccb"
 
           # Also provide direct symlink targets
