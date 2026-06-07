@@ -8,7 +8,7 @@ import {
   rmSync,
 } from 'fs'
 import { tmpdir } from 'os'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { execFileSync } from 'child_process'
 import { getClaudeConfigHomeDir } from '../../../utils/envUtils.js'
 import {
@@ -63,7 +63,9 @@ describe('resolveProjectContext', () => {
 
     expect(context.source).toBe('claude_project_dir')
     expect(context.scope).toBe('project')
-    expect(context.projectRoot).toBe(realpathSync.native(resolve(projectDir)).normalize('NFC'))
+    expect(context.projectRoot).toBe(
+      realpathSync.native(resolve(projectDir)).normalize('NFC'),
+    )
     expect(context.projectName).toBe(lastPathSegment(projectDir))
     expect(context.storageDir).toContain(context.projectId)
 
@@ -106,7 +108,9 @@ describe('resolveProjectContext', () => {
 
     expect(context.source).toBe('git_root')
     expect(context.scope).toBe('project')
-    expect(context.projectRoot).toBe(realpathSync.native(resolve(repo)).normalize('NFC'))
+    expect(context.projectRoot).toBe(
+      realpathSync.native(resolve(repo)).normalize('NFC'),
+    )
     expect(context.projectName).toBe(lastPathSegment(repo))
   })
 
