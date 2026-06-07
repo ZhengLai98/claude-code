@@ -63,7 +63,7 @@ describe('resolveProjectContext', () => {
 
     expect(context.source).toBe('claude_project_dir')
     expect(context.scope).toBe('project')
-    expect(context.projectRoot).toBe(realpathSync(projectDir))
+    expect(context.projectRoot).toBe(realpathSync.native(resolve(projectDir)).normalize('NFC'))
     expect(context.projectName).toBe(lastPathSegment(projectDir))
     expect(context.storageDir).toContain(context.projectId)
 
@@ -106,7 +106,7 @@ describe('resolveProjectContext', () => {
 
     expect(context.source).toBe('git_root')
     expect(context.scope).toBe('project')
-    expect(context.projectRoot).toBe(realpathSync(repo))
+    expect(context.projectRoot).toBe(realpathSync.native(resolve(repo)).normalize('NFC'))
     expect(context.projectName).toBe(lastPathSegment(repo))
   })
 

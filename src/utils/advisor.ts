@@ -51,10 +51,11 @@ type AdvisorConfig = {
 }
 
 function getAdvisorConfig(): AdvisorConfig {
-  return getFeatureValue_CACHED_MAY_BE_STALE<AdvisorConfig>(
+  const result = getFeatureValue_CACHED_MAY_BE_STALE<AdvisorConfig | null | undefined>(
     'tengu_sage_compass',
     {},
   )
+  return result ?? {}
 }
 
 export function isAdvisorEnabled(): boolean {
