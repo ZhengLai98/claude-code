@@ -19,8 +19,8 @@ Environment:
   CCB_BASE_URL     Override release asset base URL for testing or mirrors.
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/ZhengLai98/claude-code/main/scripts/install.sh | bash
-  curl -fsSL https://raw.githubusercontent.com/ZhengLai98/claude-code/main/scripts/install.sh | bash -s -- --version v2.6.12
+  curl -fsSL https://github.com/ZhengLai98/claude-code/releases/latest/download/install.sh | bash
+  curl -fsSL https://github.com/ZhengLai98/claude-code/releases/download/v2.6.12/install.sh | bash -s -- --version v2.6.12
 EOF
 }
 

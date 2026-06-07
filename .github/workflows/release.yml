@@ -91,6 +91,11 @@ jobs:
           # Checksum
           shasum -a 256 "$PKG_NAME.tar.gz" > "$PKG_NAME.tar.gz.sha256"
 
+          # Publish installer as a release asset so install docs do not depend on raw.githubusercontent.com
+          cp ../scripts/install.sh install.sh
+          chmod +x install.sh
+          shasum -a 256 install.sh > install.sh.sha256
+
           # Windows also gets a zip
           if [ "${{ runner.os }}" = "Windows" ]; then
             if command -v 7z &>/dev/null; then
@@ -105,7 +110,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
-          path: release/ccb-${{ matrix.target }}.*
+          path: |
+            release/ccb-${{ matrix.target }}.*
+            release/install.sh
+            release/install.sh.sha256
 
   release:
     needs: build
@@ -164,7 +172,7 @@ jobs:
 
             **macOS / Linux 一键安装：**
             ```bash
-            bash <(curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.sh)
+            curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | bash
             ```
 
             **手动安装：**
