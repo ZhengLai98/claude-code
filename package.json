@@ -1,16 +1,16 @@
 {
-  "name": "claude-code-best",
-  "version": "2.6.11",
+  "name": "zheng-claude-code",
+  "version": "2.6.12",
   "description": "Reverse-engineered Anthropic Claude Code CLI — interactive AI coding assistant in the terminal",
   "type": "module",
   "author": "claude-code-best <claude-code-best@proton.me>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/claude-code-best/claude-code.git"
+    "url": "git+https://github.com/ZhengLai98/claude-code.git"
   },
-  "homepage": "https://github.com/claude-code-best/claude-code#readme",
+  "homepage": "https://github.com/ZhengLai98/claude-code#readme",
   "bugs": {
-    "url": "https://github.com/claude-code-best/claude-code/issues"
+    "url": "https://github.com/ZhengLai98/claude-code/issues"
   },
   "keywords": [
     "claude",
@@ -27,7 +27,7 @@
   "bin": {
     "ccb": "dist/cli-node.js",
     "ccb-bun": "dist/cli-bun.js",
-    "claude-code-best": "dist/cli-node.js"
+    "zheng-claude-code": "dist/cli-node.js"
   },
   "workspaces": [
     "packages/*",

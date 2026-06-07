@@ -1,0 +1,184 @@
+name: Release (GitHub Releases)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            shell: bash
+          - os: macos-latest
+            target: darwin-arm64
+            shell: bash
+          - os: macos-13
+            target: darwin-x64
+            shell: bash
+          - os: windows-latest
+            target: win32-x64
+            shell: bash
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, 2026-04-25
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2, 2026-04-25
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run typecheck
+
+      - name: Run tests
+        run: bun test
+
+      - name: Build (Vite)
+        run: bun run build:vite
+
+      - name: Pre-download ripgrep for release package
+        run: |
+          node scripts/postinstall.cjs --force
+          # Ensure it's also in dist/vendor for the packaged build
+          if [ -d "src/utils/vendor/ripgrep" ]; then
+            mkdir -p dist/vendor/ripgrep
+            cp -r src/utils/vendor/ripgrep/* dist/vendor/ripgrep/
+          fi
+
+      - name: Package (${{ matrix.target }})
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKG_NAME="ccb-${{ matrix.target }}"
+
+          # Create release directory
+          mkdir -p "release/$PKG_NAME"
+
+          # Copy build output and metadata
+          cp -r dist "release/$PKG_NAME/dist"
+          cp package.json "release/$PKG_NAME/"
+          cp -r scripts "release/$PKG_NAME/scripts"
+
+          # Create entry wrapper — auto-detect bun vs node
+          cat > "release/$PKG_NAME/ccb" << 'WRAPPER'
+#!/usr/bin/env bash
+set -e
+DIR="$(cd "$(dirname "$0")" && pwd)"
+if command -v bun &>/dev/null; then
+  exec bun "$DIR/dist/cli.js" "$@"
+else
+  exec node "$DIR/dist/cli-node.js" "$@"
+fi
+WRAPPER
+          chmod +x "release/$PKG_NAME/ccb"
+
+          # Also provide direct symlink targets
+          chmod +x "release/$PKG_NAME/dist/cli-node.js"
+          chmod +x "release/$PKG_NAME/dist/cli-bun.js"
+
+          # Create tarball
+          cd release
+          tar -czf "$PKG_NAME.tar.gz" "$PKG_NAME/"
+
+          # Checksum
+          shasum -a 256 "$PKG_NAME.tar.gz" > "$PKG_NAME.tar.gz.sha256"
+
+          # Windows also gets a zip
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            if command -v 7z &>/dev/null; then
+              7z a -tzip "$PKG_NAME.zip" "$PKG_NAME/"
+            else
+              zip -r "$PKG_NAME.zip" "$PKG_NAME/"
+            fi
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: release/ccb-${{ matrix.target }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts/
+
+      - name: Organize artifacts flat
+        run: |
+          mkdir -p upload
+          find release-artifacts -type f -exec cp {} upload/ \;
+          ls -la upload/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ github.ref_name }}"
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION#v}$" | head -1)
+
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "${PREV_TAG}..${VERSION}" --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges -30)
+          fi
+
+          {
+            echo "commits<<EOF"
+            echo "$COMMITS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: |
+            ## ${{ github.ref_name }}
+
+            ### 下载
+
+            | 平台 | 架构 | 下载 | 校验 |
+            |------|------|------|------|
+            | Linux | x64 | [`ccb-linux-x64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-linux-x64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-linux-x64.tar.gz.sha256) |
+            | macOS | ARM64 | [`ccb-darwin-arm64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-arm64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-arm64.tar.gz.sha256) |
+            | macOS | Intel | [`ccb-darwin-x64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-x64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-x64.tar.gz.sha256) |
+            | Windows | x64 | [`ccb-win32-x64.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-win32-x64.zip) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-win32-x64.tar.gz.sha256) |
+
+            ### 安装方式
+
+            **macOS / Linux 一键安装：**
+            ```bash
+            bash <(curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/scripts/install.sh)
+            ```
+
+            **手动安装：**
+            ```bash
+            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-<YOUR_PLATFORM>.tar.gz | tar -xz
+            sudo cp ccb-<YOUR_PLATFORM>/ccb /usr/local/bin/
+            ```
+
+            ### Changelog
+
+            ${{ steps.changelog.outputs.commits }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          files: upload/*
