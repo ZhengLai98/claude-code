@@ -56,9 +56,11 @@ jobs:
         run: |
           node scripts/postinstall.cjs --force
           # Ensure it's also in dist/vendor for the packaged build
-          if [ -d "src/utils/vendor/ripgrep" ]; then
+          if [ -d "src/utils/vendor/ripgrep" ] && find "src/utils/vendor/ripgrep" -mindepth 1 -print -quit | grep -q .; then
             mkdir -p dist/vendor/ripgrep
-            cp -r src/utils/vendor/ripgrep/* dist/vendor/ripgrep/
+            cp -R src/utils/vendor/ripgrep/. dist/vendor/ripgrep/
+          else
+            echo "::warning::ripgrep vendor directory is empty; packaging will continue without pre-downloaded ripgrep"
           fi
 
       - name: Package (${{ matrix.target }})
