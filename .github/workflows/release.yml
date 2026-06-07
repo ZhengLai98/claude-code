@@ -14,17 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: linux-x64
-            shell: bash
           - os: macos-latest
             target: darwin-arm64
-            shell: bash
-          - os: macos-13
-            target: darwin-x64
-            shell: bash
-          - os: windows-latest
-            target: win32-x64
             shell: bash
 
     runs-on: ${{ matrix.os }}
@@ -167,10 +158,7 @@ jobs:
 
             | 平台 | 架构 | 下载 | 校验 |
             |------|------|------|------|
-            | Linux | x64 | [`ccb-linux-x64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-linux-x64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-linux-x64.tar.gz.sha256) |
             | macOS | ARM64 | [`ccb-darwin-arm64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-arm64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-arm64.tar.gz.sha256) |
-            | macOS | Intel | [`ccb-darwin-x64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-x64.tar.gz) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-x64.tar.gz.sha256) |
-            | Windows | x64 | [`ccb-win32-x64.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-win32-x64.zip) | [`SHA256`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-win32-x64.zip.sha256) |
 
             ### 安装方式
 
@@ -181,8 +169,8 @@ jobs:
 
             **手动安装：**
             ```bash
-            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-<YOUR_PLATFORM>.tar.gz | tar -xz
-            sudo cp ccb-<YOUR_PLATFORM>/ccb /usr/local/bin/
+            curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ccb-darwin-arm64.tar.gz | tar -xz
+            sudo cp ccb-darwin-arm64/ccb /usr/local/bin/
             ```
 
             ### Changelog
