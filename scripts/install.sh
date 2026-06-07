@@ -14,13 +14,13 @@ Usage:
   install.sh [--version <tag|latest>] [--install-dir <dir>]
 
 Environment:
-  CCB_VERSION      Release tag to install, e.g. v2.6.12. Defaults to latest.
+  CCB_VERSION      Release tag to install, e.g. v2.6.13. Defaults to latest.
   CCB_INSTALL_DIR  Install directory. Defaults to /usr/local/bin.
   CCB_BASE_URL     Override release asset base URL for testing or mirrors.
 
 Examples:
   curl -fsSL https://github.com/ZhengLai98/claude-code/releases/latest/download/install.sh | bash
-  curl -fsSL https://github.com/ZhengLai98/claude-code/releases/download/v2.6.12/install.sh | bash -s -- --version v2.6.12
+  curl -fsSL https://github.com/ZhengLai98/claude-code/releases/download/v2.6.13/install.sh | bash -s -- --version v2.6.13
 EOF
 }
 
